@@ -3,9 +3,10 @@
 # 숫자만 입력 검증 함수
 read_number() {
     local prompt="$1"
+    local default="$2"
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [[ "$var" =~ ^[0-9]+$ ]]; then
             echo "$var"
             return 0
@@ -18,9 +19,10 @@ read_number() {
 # 영문자만 입력 검증 함수
 read_alpha() {
     local prompt="$1"
+    local default="$2"    
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [[ "$var" =~ ^[a-zA-Z]+$ ]]; then
             echo "$var"
             return 0
@@ -33,9 +35,10 @@ read_alpha() {
 # 영문 또는 숫자만 입력 검증 함수
 read_alphanum() {
     local prompt="$1"
+    local default="$2"    
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [[ "$var" =~ ^[a-zA-Z0-9-]+$ ]]; then
             echo "$var"
             return 0
@@ -48,9 +51,10 @@ read_alphanum() {
 # VM ID 검증 함수
 read_vmid() {
     local prompt="$1"
+    local default="$2"    
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [[ "$var" =~ ^[0-9]+$ ]]; then
             if (( var >= 100 )); then
                 echo "$var"
@@ -67,9 +71,10 @@ read_vmid() {
 # 디스크 수 검증 함수
 validate_disk_count() {
     local prompt="$1"
+    local default="$2"    
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [[ "$var" =~ ^[1-9]+$ ]]; then
             echo "$var"
             return 0
@@ -82,9 +87,10 @@ validate_disk_count() {
 # 디스크 타입 검증 함수
 validate_disk_type() {
     local prompt="$1"
+    local default="$2"    
     local var
     while true; do
-        read -p "$prompt" var
+        read -e -i "$default" -p "$prompt" var
         if [ "$var" != "sata" ] && [ "$var" != "scsi" ]; then
             echo "잘못된 디스크 타입입니다. sata 또는 scsi를 입력해 주세요."        
         else
@@ -136,16 +142,16 @@ add_disk() {
 
 # 사용자 입력 받기
 while true; do
-    VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): ")
+    VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): " "100")
     if [ -f /etc/pve/qemu-server/${VMID}.conf ]; then
         echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
     else
         break
     fi
 done
-VMNAME=$(read_alphanum "VM 이름을 입력하세요 : ")
-CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자만): ")
-RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: ")
+VMNAME=$(read_alphanum "VM 이름을 입력하세요 : " "M-SHELL")
+CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자만): " "4")
+RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: " "4096")
 
 # 현재 노드 이름 가져오기
 NODE=$(hostname)
@@ -155,16 +161,16 @@ echo "현재 노드에서 사용 가능한 스토리지 목록 및 용량:"
 pvesh get /nodes/$NODE/storage
 
 # 디스크 수 입력 받기
-DISK_COUNT=$(validate_disk_count "사용할 디스크 수를 입력하세요: ")
+DISK_COUNT=$(validate_disk_count "사용할 디스크 수를 입력하세요: " "1")
 
 # 디스크 정보 입력 받기 및 추가
 declare -a DISK_ARRAY
 for (( i=0; i<$DISK_COUNT; i++ ))
 do
     echo "디스크 $((i+1)) 설정:"
-    DISK_TYPE=$(validate_disk_type "디스크 타입을 입력하세요 (sata 또는 scsi): ")    
-    STORAGE_NAME=$(read_alphanum "스토리지 이름을 입력하세요 (ex. local-lvm): ")
-    DISK_SIZE=$(read_number "디스크 크기를 GB 단위로 입력하세요: ")
+    DISK_TYPE=$(validate_disk_type "디스크 타입을 입력하세요 (sata 또는 scsi): " "sata")    
+    STORAGE_NAME=$(read_alphanum "스토리지 이름을 입력하세요 (ex. local-lvm): " "local-lvm")
+    DISK_SIZE=$(read_number "디스크 크기를 GB 단위로 입력하세요: " "512")
     DISK_ARRAY+=("$DISK_TYPE $STORAGE_NAME $DISK_SIZE")
 done
 
@@ -173,7 +179,7 @@ echo "사용 가능한 네트워크 브릿지 목록 :"
 pvesh get /nodes/$NODE/network
 
 # 네트워크 브릿지 입력 받기
-NET_BRIDGE=$(read_alphanum "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0): ")
+NET_BRIDGE=$(read_alphanum "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0): " "vmbr0")
 
 # 이미지 파일 선택
 echo "사용할 이미지 파일을 선택하세요:"
