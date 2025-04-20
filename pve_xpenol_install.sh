@@ -1,9 +1,14 @@
 #!/bin/bash
 
+print_quit_message() {
+    echo "언제라도 q 키를 누르면 스크립트를 종료할 수 있습니다."
+}
+
 read_number() {
     local prompt="$1"
     local var
     while true; do
+        print_quit_message
         read -p "$prompt" var
         if [[ "$var" =~ ^[0-9]+$ ]]; then
             echo "$var"
@@ -18,6 +23,7 @@ read_alpha() {
     local prompt="$1"
     local var
     while true; do
+        print_quit_message
         read -p "$prompt" var
         if [[ "$var" =~ ^[a-zA-Z]+$ ]]; then
             echo "$var"
@@ -32,6 +38,7 @@ read_alphanum() {
     local prompt="$1"
     local var
     while true; do
+        print_quit_message
         read -p "$prompt" var
         if [[ "$var" =~ ^[a-zA-Z0-9]+$ ]]; then
             echo "$var"
@@ -147,6 +154,7 @@ pvesh get /nodes/$NODE/network
 NET_BRIDGE=$(read_alphanum "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0): ")
 
 # 이미지 파일 선택
+print_quit_message
 echo "사용할 이미지 파일을 선택하세요:"
 echo "1. m-shell (m-shell.img)"
 echo "2. RR (rr.img.zip)"
