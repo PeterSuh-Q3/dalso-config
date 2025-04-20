@@ -142,8 +142,18 @@ add_disk() {
     fi
 }
 
+# /etc/pve/qemu-server 디렉토리의 .conf 파일에서 VMID 추출
+max_vmid=$(ls /etc/pve/qemu-server/*.conf 2>/dev/null | \
+    sed -e 's/.*\///' -e 's/\.conf$//' | sort -n | tail -1)
+# VMID가 없을 경우 기본값 100 설정 (Proxmox 규칙)
+if [ -z "$max_vmid" ]; then
+    max_vmid=100
+fi
+# 다음 VMID 계산
+nextvmid=$((max_vmid + 1))
+
 # 사용자 입력 받기
-VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): " "100")
+VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): " "${nextvmid}")
 VMNAME=$(read_alphanum "VM 이름을 입력하세요 : " "M-SHELL")
 CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자만): " "4")
 RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: " "4096")
