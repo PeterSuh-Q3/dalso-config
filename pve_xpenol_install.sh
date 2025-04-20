@@ -1,5 +1,47 @@
 #!/bin/bash
 
+read_number() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [[ "$var" =~ ^[0-9]+$ ]]; then
+            echo "$var"
+            return 0
+        else
+            echo "숫자만 입력해 주세요."
+        fi
+    done
+}
+
+read_alpha() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [[ "$var" =~ ^[a-zA-Z]+$ ]]; then
+            echo "$var"
+            return 0
+        else
+            echo "영문자만 입력해 주세요."
+        fi
+    done
+}
+
+read_alphanum() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [[ "$var" =~ ^[a-zA-Z0-9]+$ ]]; then
+            echo "$var"
+            return 0
+        else
+            echo "영문자 또는 숫자만 입력해 주세요."
+        fi
+    done
+}
+
 # 필요한 패키지 확인 및 설치
 install_package() {
     local package=$1
@@ -61,10 +103,10 @@ validate_disk_count() {
 }
 
 # 사용자 입력 받기
-read -p "VM 번호를 입력하세요 (숫자): " VMID
-read -p "VM 이름을 입력하세요 : " VMNAME
-read -p "CPU 코어 수를 입력하세요 : " CORES
-read -p "RAM 크기를 MB 단위로 입력하세요 (ex)4096=4G: " RAM
+VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
+VMNAME=$(read_alpha "VM 이름을 입력하세요 (영문자만): ")
+CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자민): ")
+RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: ")
 
 # 현재 노드 이름 가져오기
 NODE=$(hostname)
@@ -75,7 +117,7 @@ pvesh get /nodes/$NODE/storage
 
 # 디스크 수 입력 받기
 while true; do
-    read -p "사용할 디스크 수를 입력하세요: " DISK_COUNT
+    DISK_COUNT=$(read_number "사용할 디스크 수를 입력하세요: ")
     if validate_disk_count $DISK_COUNT; then
         break
     fi
@@ -87,13 +129,13 @@ for (( i=0; i<$DISK_COUNT; i++ ))
 do
     echo "디스크 $((i+1)) 설정:"
     while true; do
-        read -p "디스크 타입을 입력하세요 (sata 또는 scsi): " DISK_TYPE
+        DISK_TYPE=$(read_number "디스크 타입을 입력하세요 (sata 또는 scsi): ")    
         if validate_disk_type $DISK_TYPE; then
             break
         fi
     done
-    read -p "스토리지 이름을 입력하세요 (ex. local-lvm): " STORAGE_NAME
-    read -p "디스크 크기를 GB 단위로 입력하세요: " DISK_SIZE
+    STORAGE_NAME=$(read_alpha "스토리지 이름을 입력하세요 (ex. local-lvm): ")
+    DISK_SIZE=$(read_number "디스크 크기를 GB 단위로 입력하세요: ")
     DISK_ARRAY+=("$DISK_TYPE $STORAGE_NAME $DISK_SIZE")
 done
 
@@ -102,7 +144,7 @@ echo "사용 가능한 네트워크 브릿지 목록 :"
 pvesh get /nodes/$NODE/network
 
 # 네트워크 브릿지 입력 받기
-read -p "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0) : " NET_BRIDGE
+NET_BRIDGE=$(read_alphanum "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0): ")
 
 # 이미지 파일 선택
 echo "사용할 이미지 파일을 선택하세요:"
