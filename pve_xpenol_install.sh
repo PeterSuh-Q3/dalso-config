@@ -105,7 +105,7 @@ validate_disk_count() {
 # 사용자 입력 받기
 while true; do
     VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
-    if [[ -f "/etc/pve/qemu-server/${VMID}.conf" ]]; then
+    if [ -f /etc/pve/qemu-server/${VMID}.conf ]; then
         echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
     else
         break
