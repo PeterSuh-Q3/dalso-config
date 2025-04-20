@@ -8,8 +8,11 @@ read_number() {
     local prompt="$1"
     local var
     while true; do
-        print_quit_message
         read -p "$prompt" var
+        if [[ "$var" == "q" || "$var" == "Q" ]]; then
+            echo "사용자에 의해 스크립트가 종료되었습니다."
+            exit 0
+        fi        
         if [[ "$var" =~ ^[0-9]+$ ]]; then
             echo "$var"
             return 0
@@ -23,8 +26,11 @@ read_alpha() {
     local prompt="$1"
     local var
     while true; do
-        print_quit_message
         read -p "$prompt" var
+        if [[ "$var" == "q" || "$var" == "Q" ]]; then
+            echo "사용자에 의해 스크립트가 종료되었습니다."
+            exit 0
+        fi        
         if [[ "$var" =~ ^[a-zA-Z]+$ ]]; then
             echo "$var"
             return 0
@@ -38,8 +44,11 @@ read_alphanum() {
     local prompt="$1"
     local var
     while true; do
-        print_quit_message
         read -p "$prompt" var
+        if [[ "$var" == "q" || "$var" == "Q" ]]; then
+            echo "사용자에 의해 스크립트가 종료되었습니다."
+            exit 0
+        fi        
         if [[ "$var" =~ ^[a-zA-Z0-9]+$ ]]; then
             echo "$var"
             return 0
@@ -110,10 +119,11 @@ validate_disk_count() {
 }
 
 # 사용자 입력 받기
+print_quit_message
 while true; do
     VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
-    if qm status $VMID &> /dev/null || pct status $VMID &> /dev/null; then
-        echo "이미 존재하는 VMID 또는 컨테이너 ID입니다. 다른 번호를 입력해 주세요."
+    if [[ -f "/etc/pve/qemu-server/${VMID}.conf" ]]; then
+        echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
     else
         break
     fi
