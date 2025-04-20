@@ -144,7 +144,7 @@ for (( i=0; i<$DISK_COUNT; i++ ))
 do
     echo "디스크 $((i+1)) 설정:"
     DISK_TYPE=$(validate_disk_type "디스크 타입을 입력하세요 (sata 또는 scsi): ")    
-    STORAGE_NAME=$(read_alpha "스토리지 이름을 입력하세요 (ex. local-lvm): ")
+    STORAGE_NAME=$(read_alphanum "스토리지 이름을 입력하세요 (ex. local-lvm): ")
     DISK_SIZE=$(read_number "디스크 크기를 GB 단위로 입력하세요: ")
     DISK_ARRAY+=("$DISK_TYPE $STORAGE_NAME $DISK_SIZE")
 done
