@@ -45,6 +45,25 @@ read_alphanum() {
     done
 }
 
+# VM ID 검증 함수
+read_vmid() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [[ "$var" =~ ^[0-9]+$ ]]; then
+            if (( var >= 100 )); then
+                echo "$var"
+                return 0
+            else
+                echo "100 이상의 숫자만 입력해 주세요."
+            fi
+        else
+            echo "숫자만 입력해 주세요."
+        fi
+    done
+}
+
 # 디스크 수 검증 함수
 validate_disk_count() {
     local prompt="$1"
@@ -117,7 +136,7 @@ add_disk() {
 
 # 사용자 입력 받기
 while true; do
-    VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
+    VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): ")
     if [ -f /etc/pve/qemu-server/${VMID}.conf ]; then
         echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
     else
