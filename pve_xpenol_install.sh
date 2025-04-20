@@ -22,7 +22,7 @@ download_and_extract_image() {
     local url=$1
     local zip_path=$2
     local img_path=$3
-    wget $url -O $zip_path
+    curl -kL# $url -o $zip_path
     unzip -o $zip_path -d $(dirname $img_path)
 }
 
@@ -115,7 +115,7 @@ read -p "선택 (1 - 3): " IMAGE_CHOICE
 if [ "$IMAGE_CHOICE" -eq 1 ]; then
     IMG_URL="https://github.com/PeterSuh-Q3/tinycore-redpill/releases/download/v1.2.0.0/tinycore-redpill.v1.2.0.0.m-shell.img.gz"
     IMG_PATH="/var/lib/vz/template/iso/m-shell.img"
-    wget $IMG_URL -O /var/lib/vz/template/iso/m-shell.img.gz
+    curl -kL# $IMG_URL -o /var/lib/vz/template/iso/m-shell.img.gz
     gunzip -f /var/lib/vz/template/iso/m-shell.img.gz
 elif [ "$IMAGE_CHOICE" -eq 2 ]; then
     IMG_URL="https://github.com/RROrg/rr/releases/download/25.1.4/rr-25.1.4.img.zip"
@@ -125,7 +125,7 @@ elif [ "$IMAGE_CHOICE" -eq 2 ]; then
 elif [ "$IMAGE_CHOICE" -eq 3 ]; then
     IMG_URL="https://github.com/PeterSuh-Q3/tinycore-redpill/releases/download/v1.2.0.0/tinycore-redpill.v1.2.0.0.xtcrp.img.gz"
     IMG_PATH="/var/lib/vz/template/iso/xtcrp.img"
-    wget $IMG_URL -O /var/lib/vz/template/iso/xtcrp.img.gz
+    curl -kL# $IMG_URL -o /var/lib/vz/template/iso/xtcrp.img.gz
     gunzip -f /var/lib/vz/template/iso/xtcrp.img.gz
 else
     echo "잘못된 선택입니다. 1 부터 3까지의 숫자를 입력하세요."
