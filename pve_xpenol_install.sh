@@ -1,10 +1,16 @@
 #!/bin/bash
 
-trap 'echo ""; echo "Ctrl+C 입력으로 스크립트를 종료합니다."; exit 1' INT
-
 print_quit_message() {
     echo "언제라도 Ctrl+c 를 누르면 스크립트를 종료할 수 있습니다."
 }
+
+# Function to be called on Ctrl+C or ESC
+ctrl_c() {
+    echo "Ctrl+c 입력으로 스크립트를 종료합니다."
+}
+
+# Trap Ctrl+C (SIGINT) signals and call ctrl_c function
+trap ctrl_c INT
 
 read_number() {
     local prompt="$1"
