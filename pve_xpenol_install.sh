@@ -104,7 +104,7 @@ validate_disk_count() {
 
 # 사용자 입력 받기
 VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
-VMNAME=$(read_alpha "VM 이름을 입력하세요 (영문자만): ")
+VMNAME=$(read_alphanum "VM 이름을 입력하세요 : ")
 CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자민): ")
 RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: ")
 
