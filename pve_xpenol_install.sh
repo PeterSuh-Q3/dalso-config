@@ -92,7 +92,7 @@ do
             break
         fi
     done
-    read -p "스토리지 이름을 입력하세요 (ex. local-LVM): " STORAGE_NAME
+    read -p "스토리지 이름을 입력하세요 (ex. local-lvm): " STORAGE_NAME
     read -p "디스크 크기를 GB 단위로 입력하세요: " DISK_SIZE
     DISK_ARRAY+=("$DISK_TYPE $STORAGE_NAME $DISK_SIZE")
 done
