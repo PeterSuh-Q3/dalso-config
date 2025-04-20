@@ -55,7 +55,9 @@ read_vmid() {
     local var
     while true; do
         read -e -i "$default" -p "$prompt" var
-        if [[ "$var" =~ ^[0-9]+$ ]]; then
+        if [ -f "/etc/pve/qemu-server/${var}.conf" ]; then
+            echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
+        elif [[ "$var" =~ ^[0-9]+$ ]]; then
             if (( var >= 100 )); then
                 echo "$var"
                 return 0
@@ -141,14 +143,7 @@ add_disk() {
 }
 
 # 사용자 입력 받기
-while true; do
-    VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): " "100")
-    if [ -f /etc/pve/qemu-server/${VMID}.conf ]; then
-        echo "이미 존재하는 VMID입니다. 다른 번호를 입력해 주세요."
-    else
-        break
-    fi
-done
+VMID=$(read_vmid "VM 번호를 입력하세요 (숫자만): " "100")
 VMNAME=$(read_alphanum "VM 이름을 입력하세요 : " "M-SHELL")
 CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자만): " "4")
 RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: " "4096")
