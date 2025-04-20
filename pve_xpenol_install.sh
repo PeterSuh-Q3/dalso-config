@@ -110,7 +110,14 @@ validate_disk_count() {
 }
 
 # 사용자 입력 받기
-VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
+while true; do
+    VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
+    if qm status $VMID &> /dev/null || pct status $VMID &> /dev/null; then
+        echo "이미 존재하는 VMID 또는 컨테이너 ID입니다. 다른 번호를 입력해 주세요."
+    else
+        break
+    fi
+done
 VMNAME=$(read_alphanum "VM 이름을 입력하세요 : ")
 CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자민): ")
 RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: ")
