@@ -172,7 +172,7 @@ if [ "$IMAGE_CHOICE" -eq 1 ]; then
     curl -kL# $IMG_URL -o /var/lib/vz/template/iso/m-shell.img.gz
     gunzip -f /var/lib/vz/template/iso/m-shell.img.gz
 elif [ "$IMAGE_CHOICE" -eq 2 ]; then
-    LATESTURL="`curl --connect-timeout 5 -skL -w %{url_effective} -o /dev/null "https://github.com/PeterSuh-Q3/RROrg/rr/releases/latest"`"
+    LATESTURL="`curl --connect-timeout 5 -skL -w %{url_effective} -o /dev/null "https://github.com/RROrg/rr/releases/latest"`"
     TAG="${LATESTURL##*/}"
     IMG_URL="https://github.com/RROrg/rr/releases/download/${TAG}/rr-${TAG}.img.zip"
     IMG_ZIP_PATH="/var/lib/vz/template/iso/rr-${TAG}.img.zip"
