@@ -66,7 +66,7 @@ validate_disk_type() {
     local var
     while true; do
         read -p "$prompt" var
-        if [ "$DISK_TYPE" != "sata" ] && [ "$DISK_TYPE" != "scsi" ]; then
+        if [ "$var" != "sata" ] && [ "$var" != "scsi" ]; then
             echo "잘못된 디스크 타입입니다. sata 또는 scsi를 입력해 주세요."        
         else
             echo "$var"
@@ -125,7 +125,7 @@ while true; do
     fi
 done
 VMNAME=$(read_alphanum "VM 이름을 입력하세요 : ")
-CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자민): ")
+CORES=$(read_number "CPU 코어 수를 입력하세요 (숫자만): ")
 RAM=$(read_number "RAM 크기를 MB 단위로 입력하세요 (숫자만) (ex)4096=4G: ")
 
 # 현재 노드 이름 가져오기
