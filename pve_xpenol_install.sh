@@ -1,17 +1,5 @@
 #!/bin/bash
 
-print_quit_message() {
-    echo "언제라도 Ctrl+c 를 누르면 스크립트를 종료할 수 있습니다."
-}
-
-# Function to be called on Ctrl+C or ESC
-ctrl_c() {
-    echo "Ctrl+c 입력으로 스크립트를 종료합니다."
-}
-
-# Trap Ctrl+C (SIGINT) signals and call ctrl_c function
-trap ctrl_c INT
-
 read_number() {
     local prompt="$1"
     local var
@@ -115,7 +103,6 @@ validate_disk_count() {
 }
 
 # 사용자 입력 받기
-print_quit_message
 while true; do
     VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
     if [[ -f "/etc/pve/qemu-server/${VMID}.conf" ]]; then
@@ -167,7 +154,6 @@ pvesh get /nodes/$NODE/network
 NET_BRIDGE=$(read_alphanum "사용할 네트워크 브릿지 이름을 입력하세요 (ex. vmbr0): ")
 
 # 이미지 파일 선택
-print_quit_message
 echo "사용할 이미지 파일을 선택하세요:"
 echo "1. m-shell (m-shell.img)"
 echo "2. RR (rr.img.zip)"
