@@ -1,7 +1,9 @@
 #!/bin/bash
 
+trap 'echo ""; echo "Ctrl+C 입력으로 스크립트를 종료합니다."; exit 1' INT
+
 print_quit_message() {
-    echo "언제라도 q 키를 누르면 스크립트를 종료할 수 있습니다."
+    echo "언제라도 Ctrl+c 를 누르면 스크립트를 종료할 수 있습니다."
 }
 
 read_number() {
@@ -9,10 +11,6 @@ read_number() {
     local var
     while true; do
         read -p "$prompt" var
-        if [[ "$var" == "q" || "$var" == "Q" ]]; then
-            echo "사용자에 의해 스크립트가 종료되었습니다."
-            exit 0
-        fi        
         if [[ "$var" =~ ^[0-9]+$ ]]; then
             echo "$var"
             return 0
@@ -27,10 +25,6 @@ read_alpha() {
     local var
     while true; do
         read -p "$prompt" var
-        if [[ "$var" == "q" || "$var" == "Q" ]]; then
-            echo "사용자에 의해 스크립트가 종료되었습니다."
-            exit 0
-        fi        
         if [[ "$var" =~ ^[a-zA-Z]+$ ]]; then
             echo "$var"
             return 0
@@ -45,10 +39,6 @@ read_alphanum() {
     local var
     while true; do
         read -p "$prompt" var
-        if [[ "$var" == "q" || "$var" == "Q" ]]; then
-            echo "사용자에 의해 스크립트가 종료되었습니다."
-            exit 0
-        fi        
         if [[ "$var" =~ ^[a-zA-Z0-9]+$ ]]; then
             echo "$var"
             return 0
