@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 숫자만 입력 검증 함수
 read_number() {
     local prompt="$1"
     local var
@@ -14,6 +15,7 @@ read_number() {
     done
 }
 
+# 영문자만 입력 검증 함수
 read_alpha() {
     local prompt="$1"
     local var
@@ -28,6 +30,7 @@ read_alpha() {
     done
 }
 
+# 영문 또는 숫자만 입력 검증 함수
 read_alphanum() {
     local prompt="$1"
     local var
@@ -38,6 +41,36 @@ read_alphanum() {
             return 0
         else
             echo "영문자 또는 숫자만 입력해 주세요."
+        fi
+    done
+}
+
+# 디스크 수 검증 함수
+validate_disk_count() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [[ "$var" =~ ^[1-9]+$ ]]; then
+            echo "$var"
+            return 0
+        else
+            echo "디스크 수는 1부터 9까지의 숫자여야 합니다."
+        fi
+    done
+}
+
+# 디스크 타입 검증 함수
+validate_disk_type() {
+    local prompt="$1"
+    local var
+    while true; do
+        read -p "$prompt" var
+        if [ "$DISK_TYPE" != "sata" ] && [ "$DISK_TYPE" != "scsi" ]; then
+            echo "잘못된 디스크 타입입니다. sata 또는 scsi를 입력해 주세요."        
+        else
+            echo "$var"
+            return 0
         fi
     done
 }
@@ -82,26 +115,6 @@ add_disk() {
     fi
 }
 
-# 디스크 타입 검증 함수
-validate_disk_type() {
-    local DISK_TYPE=$1
-    if [ "$DISK_TYPE" != "sata" ] && [ "$DISK_TYPE" != "scsi" ]; then
-        echo "잘못된 디스크 타입입니다. sata 또는 scsi를 입력해 주세요."
-        return 1
-    fi
-    return 0
-}
-
-# 디스크 수 검증 함수
-validate_disk_count() {
-    local COUNT=$1
-    if [[ ! "$COUNT" =~ ^[1-9]$ ]]; then
-        echo "디스크 수는 1부터 9까지의 숫자여야 합니다."
-        return 1
-    fi
-    return 0
-}
-
 # 사용자 입력 받기
 while true; do
     VMID=$(read_number "VM 번호를 입력하세요 (숫자만): ")
@@ -123,24 +136,14 @@ echo "현재 노드에서 사용 가능한 스토리지 목록 및 용량:"
 pvesh get /nodes/$NODE/storage
 
 # 디스크 수 입력 받기
-while true; do
-    DISK_COUNT=$(read_number "사용할 디스크 수를 입력하세요: ")
-    if validate_disk_count $DISK_COUNT; then
-        break
-    fi
-done
+DISK_COUNT=$(validate_disk_count "사용할 디스크 수를 입력하세요: ")
 
 # 디스크 정보 입력 받기 및 추가
 declare -a DISK_ARRAY
 for (( i=0; i<$DISK_COUNT; i++ ))
 do
     echo "디스크 $((i+1)) 설정:"
-    while true; do
-        DISK_TYPE=$(read_number "디스크 타입을 입력하세요 (sata 또는 scsi): ")    
-        if validate_disk_type $DISK_TYPE; then
-            break
-        fi
-    done
+    DISK_TYPE=$(validate_disk_type "디스크 타입을 입력하세요 (sata 또는 scsi): ")    
     STORAGE_NAME=$(read_alpha "스토리지 이름을 입력하세요 (ex. local-lvm): ")
     DISK_SIZE=$(read_number "디스크 크기를 GB 단위로 입력하세요: ")
     DISK_ARRAY+=("$DISK_TYPE $STORAGE_NAME $DISK_SIZE")
