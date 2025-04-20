@@ -36,11 +36,11 @@ read_alphanum() {
     local var
     while true; do
         read -p "$prompt" var
-        if [[ "$var" =~ ^[a-zA-Z0-9]+$ ]]; then
+        if [[ "$var" =~ ^[a-zA-Z0-9-]+$ ]]; then
             echo "$var"
             return 0
         else
-            echo "영문자 또는 숫자만 입력해 주세요."
+            echo "영문자, 숫자 또는 - 만 입력해 주세요."
         fi
     done
 }
