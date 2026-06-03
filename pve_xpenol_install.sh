@@ -264,9 +264,20 @@ build_img_url() {
     esac
 }
 
-# Convert curl progress output (CR-separated) on stdin into integer percent values.
-parse_gauge_pct() {
-    stdbuf -oL tr '\r' '\n' | sed -un 's/.*\(^\|[^0-9]\)\([0-9]\{1,3\}\)\.[0-9]%.*/\2/p'
+# Clamped integer percent of cur/total (0..100); 0 when total is unknown/zero.
+gauge_pct() {  # cur total
+    local cur="$1" total="$2" p
+    [[ "$total" =~ ^[0-9]+$ ]] && (( total > 0 )) || { echo 0; return; }
+    p=$(( cur * 100 / total ))
+    (( p > 100 )) && p=100
+    (( p < 0 )) && p=0
+    echo "$p"
+}
+
+# Resolve a URL's size in bytes (follows redirects; last Content-Length wins). 0 if unknown.
+remote_size() {  # url
+    curl -sILk --max-time 20 "$1" 2>/dev/null \
+        | awk 'BEGIN{IGNORECASE=1} /^content-length:/{v=$2} END{gsub(/[^0-9]/,"",v); print v+0}'
 }
 
 # Read disks/list JSON on stdin; emit "by_id_link \t model size (serial)" for unused disks only.
@@ -439,20 +450,30 @@ wt_infobox() {
     whiptail --backtitle "$BACKTITLE" --title "$1" --infobox "$2" "${3:-8}" "${4:-70}"
 }
 
-# Download with a real progress gauge; fall back to an infobox + blocking download if % parsing fails.
+# Download with a real progress gauge driven by downloaded-bytes vs Content-Length.
+# curl's own meter is always suppressed (-s + 2>/dev/null) so nothing leaks onto the TUI.
 # Args: url, dest, label. rc 0 on success, non-zero on curl failure.
 download_with_gauge() {
-    local url="$1" dest="$2" label="$3" rc
-    {
-        curl --fail -kL "$url" -o "$dest" 2> >(parse_gauge_pct)
-        echo $? > /tmp/.xpenol_dl_rc
-    } | whiptail --backtitle "$BACKTITLE" --gauge "$label" 8 70 0
-    rc=$(cat /tmp/.xpenol_dl_rc 2>/dev/null || echo 1)
-    rm -f /tmp/.xpenol_dl_rc
-    if (( rc != 0 )); then
+    local url="$1" dest="$2" label="$3" total rc cpid cur
+    total=$(remote_size "$url")
+    rm -f "$dest"
+    if ! [[ "$total" =~ ^[0-9]+$ ]] || (( total <= 0 )); then
+        # Unknown size: honest infobox + blocking download (no movable gauge possible).
         wt_infobox "$(t dl_gauge_fallback_title)" "$(tf dl_gauge_fallback_body "$label")"
-        curl --fail -kL "$url" -o "$dest"; rc=$?
+        curl --fail -ksL "$url" -o "$dest" 2>/dev/null
+        return $?
     fi
+    curl --fail -ksL "$url" -o "$dest" 2>/dev/null &
+    cpid=$!
+    {
+        while kill -0 "$cpid" 2>/dev/null; do
+            cur=$(stat -c %s "$dest" 2>/dev/null || echo 0)
+            gauge_pct "$cur" "$total"
+            sleep 0.3
+        done
+        echo 100
+    } | whiptail --backtitle "$BACKTITLE" --gauge "$label" 8 70 0
+    wait "$cpid"; rc=$?
     return $rc
 }
 
