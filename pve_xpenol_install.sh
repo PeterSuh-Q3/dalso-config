@@ -16,6 +16,8 @@ CURRENT_STEP=1
 LANG_CHOICE="en"   # "en" | "ko"; overridden by pick_language
 
 declare -A MSG_en=(
+    [quit_title]="Exit installer?"
+    [quit_body]="Quit the Xpenology installer? Your choices will be lost."
     [backtitle]="Xpenology VM Installer for Proxmox VE"
     [root_err]="This script must be run as root."
     [canceled]="Canceled."
@@ -113,6 +115,8 @@ declare -A MSG_en=(
     [step_word]="Step"
 )
 declare -A MSG_ko=(
+    [quit_title]="설치 종료?"
+    [quit_body]="Xpenology 설치를 종료할까요? 선택한 내용이 사라집니다."
     [backtitle]="Proxmox VE용 Xpenology VM 설치 마법사"
     [root_err]="이 스크립트는 root로 실행해야 합니다."
     [canceled]="취소되었습니다."
@@ -312,7 +316,7 @@ select_storage() {
         --menu "$prompt_text" 20 78 10 "${whiptail_options[@]}" 3>&1 1>&2 2>&3)
     local rc=$?
     echo "$out"
-    return $rc
+    case $rc in 0) return 0 ;; 1) return 1 ;; *) return 2 ;; esac
 }
 
 # Echoes chosen bridge on stdout; rc 0=OK, 1=Back, 3=no-bridge-error.
@@ -332,13 +336,13 @@ select_bridge() {
         --menu "$prompt_text" 20 78 10 "${whiptail_options[@]}" 3>&1 1>&2 2>&3)
     local rc=$?
     echo "$out"
-    return $rc
+    case $rc in 0) return 0 ;; 1) return 1 ;; *) return 2 ;; esac
 }
 
 # Resolve the single 'latest' tag via the releases/latest redirect. rc 1 on failure.
 fetch_latest_tag() {
     local repo="$1" url
-    url=$(curl -sfL -w '%{url_effective}' -o /dev/null "https://github.com/${repo}/releases/latest") || return 1
+    url=$(curl -sfL -w '%{url_effective}' -o /dev/null "https://github.com/${repo}/releases/latest") || return $?
     echo "${url##*/}"
 }
 
@@ -397,7 +401,7 @@ wt_input() {
         --inputbox "$prompt" 10 70 "$default" 3>&1 1>&2 2>&3)
     local rc=$?
     echo "$out"
-    return $rc
+    case $rc in 0) return 0 ;; 1) return 1 ;; *) return 2 ;; esac
 }
 
 # Menu. Args: section_title, prompt, default_item, then (tag label) pairs. Echoes tag. rc 0=OK,1=Back.
@@ -410,7 +414,7 @@ wt_menu() {
         --menu "$prompt" 20 78 10 "$@" 3>&1 1>&2 2>&3)
     local rc=$?
     echo "$out"
-    return $rc
+    case $rc in 0) return 0 ;; 1) return 1 ;; *) return 2 ;; esac
 }
 
 # Checklist (multi-select). Args: section_title, prompt, then (tag label status) triples.
@@ -423,7 +427,7 @@ wt_checklist() {
         --checklist "$prompt" 20 78 10 "$@" 3>&1 1>&2 2>&3)
     local rc=$?
     echo "$out"
-    return $rc
+    case $rc in 0) return 0 ;; 1) return 1 ;; *) return 2 ;; esac
 }
 
 # Message box.
@@ -473,13 +477,13 @@ download_with_gauge() {
 # --- Step functions: rc 0=next, 1=back, 2=cancel, 100=redisplay ---
 
 step_core() {
-    VMID=$(wt_input "$(t sec_core)" "$(t core_vmid_prompt)" "${VMID:-$(pvesh get /cluster/nextid)}") || return 1
+    VMID=$(wt_input "$(t sec_core)" "$(t core_vmid_prompt)" "${VMID:-$(pvesh get /cluster/nextid)}") || return $?
     [ -n "$VMID" ] || { wt_msg "$(t err_title)" "$(t err_vmid_empty)"; return 100; }
-    VMNAME=$(wt_input "$(t sec_core)" "$(t core_vmname_prompt)" "${VMNAME:-Xpenology}") || return 1
+    VMNAME=$(wt_input "$(t sec_core)" "$(t core_vmname_prompt)" "${VMNAME:-Xpenology}") || return $?
     [ -n "$VMNAME" ] || { wt_msg "$(t err_title)" "$(t err_vmname_empty)"; return 100; }
-    CORES=$(wt_input "$(t sec_core)" "$(t core_cores_prompt)" "${CORES:-2}") || return 1
+    CORES=$(wt_input "$(t sec_core)" "$(t core_cores_prompt)" "${CORES:-2}") || return $?
     [[ "$CORES" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_cores)"; return 100; }
-    RAM=$(wt_input "$(t sec_core)" "$(t core_ram_prompt)" "${RAM:-2048}") || return 1
+    RAM=$(wt_input "$(t sec_core)" "$(t core_ram_prompt)" "${RAM:-2048}") || return $?
     [[ "$RAM" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_ram)"; return 100; }
     return 0
 }
@@ -489,7 +493,7 @@ step_storage() {
     case "$BUS_TYPE_PARAM" in scsi) default_bus=1 ;; sata) default_bus=2 ;; *) default_bus=1 ;; esac
     choice=$(wt_menu "$(t sec_disk)" "$(t disk_bus_prompt)" "$default_bus" \
         "1" "VirtIO SCSI (DS3622xs+)" \
-        "2" "SATA (SA6400, DS920+, etc)") || return 1
+        "2" "SATA (SA6400, DS920+, etc)") || return $?
     case $choice in
         1) BUS_TYPE_PARAM="scsi" ;;
         2) BUS_TYPE_PARAM="sata" ;;
@@ -501,7 +505,7 @@ step_storage() {
     local mode
     mode=$(wt_menu "$(t sec_storage_mode)" "$(t storage_mode_prompt)" "$mode_default" \
         "virtual"     "$(t mode_virtual)" \
-        "passthrough" "$(t mode_passthrough)") || return 1
+        "passthrough" "$(t mode_passthrough)") || return $?
     case "$mode" in
         virtual)     STORAGE_MODE="virtual";     step_storage_virtual ;;
         passthrough) STORAGE_MODE="passthrough"; step_storage_passthrough ;;
@@ -510,10 +514,10 @@ step_storage() {
 }
 
 step_storage_virtual() {
-    DISK_SIZE=$(wt_input "$(t sec_disk)" "$(t disk_size_prompt)" "${DISK_SIZE:-32}") || return 1
+    DISK_SIZE=$(wt_input "$(t sec_disk)" "$(t disk_size_prompt)" "${DISK_SIZE:-32}") || return $?
     [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_disk_size)"; return 100; }
     DATA_STORAGE=$(select_storage "$(tf storage_select_prompt "$DISK_SIZE")" "images" "$DATA_STORAGE")
-    case $? in 0) ;; 1) return 1 ;; *) return 100 ;; esac
+    case $? in 0) ;; 1) return 1 ;; 2) return 2 ;; *) return 100 ;; esac
     return 0
 }
 
@@ -533,7 +537,7 @@ step_storage_passthrough() {
         wt_msg "$(t pt_heads_up_title)" "$(tf pt_heads_up_body "$((total - shown))")"
     fi
     local selected
-    selected=$(wt_checklist "$(t sec_passthrough)" "$(t pt_select_prompt)" "${opts[@]}") || return 1
+    selected=$(wt_checklist "$(t sec_passthrough)" "$(t pt_select_prompt)" "${opts[@]}") || return $?
     [ -n "$selected" ] || { wt_msg "$(t pt_nothing_title)" "$(t pt_nothing_body)"; return 100; }
     PASSTHRU_DISKS=()
     eval "PASSTHRU_DISKS=($selected)"
@@ -547,7 +551,7 @@ step_storage_passthrough() {
 
 step_network() {
     BRIDGE=$(select_bridge "$(t network_select_prompt)" "$BRIDGE")
-    case $? in 0) ;; 1) return 1 ;; *) return 100 ;; esac
+    case $? in 0) ;; 1) return 1 ;; 2) return 2 ;; *) return 100 ;; esac
     return 0
 }
 
@@ -556,7 +560,7 @@ step_bootloader() {
     case "$IMAGE_NAME" in m-shell) kind_default=1 ;; RR) kind_default=2 ;; *) kind_default=1 ;; esac
     local choice
     choice=$(wt_menu "$(t sec_bootloader)" "$(t boot_prompt)" "$kind_default" \
-        "1" "m-shell" "2" "RR") || return 1
+        "1" "m-shell" "2" "RR") || return $?
     case $choice in
         1) IMAGE_NAME="m-shell" ;;
         2) IMAGE_NAME="RR" ;;
@@ -570,7 +574,7 @@ step_bootloader() {
     [ -n "$IMG_TAG" ] || { wt_msg "$(t err_generic)" "$(t boot_empty_tag)"; return 100; }
     IMG_URL=$(build_img_url "$IMAGE_NAME" "$IMG_TAG") || { wt_msg "$(t err_generic)" "$(t boot_url_err)"; return 100; }
 
-    prepare_bootloader || return 100
+    prepare_bootloader || return $?00
     return 0
 }
 
@@ -594,7 +598,8 @@ step_confirm() {
             "STORAGE" "$storage_line" \
             "BRIDGE"  "$(t rev_bridge): ${BRIDGE}" \
             "BOOT"    "$(t rev_bootloader): ${IMAGE_NAME} ${IMG_TAG}" \
-            3>&1 1>&2 2>&3) || return 1
+            3>&1 1>&2 2>&3)
+        case $? in 0) ;; 255) return 2 ;; *) return 1 ;; esac
         case "$choice" in
             create)
                 if [ "$STORAGE_MODE" = "passthrough" ] && (( ${#PASSTHRU_DISKS[@]} == 0 )); then
@@ -627,6 +632,11 @@ abort() {
     cleanup
     msg "$(t canceled)" "$R"
     exit 1
+}
+
+# Esc anywhere in the wizard -> ask to quit. rc 0 if the user chose to quit.
+confirm_quit() {
+    wt_yesno "$(t quit_title)" "$(t quit_body)"
 }
 
 # One-time language selection shown before the wizard. Cancel/Esc = quit.
@@ -752,7 +762,7 @@ main() {
         case $rc in
             0)   (( i++ )) ;;
             1)   (( i-- )) ;;
-            2)   abort ;;
+            2)   confirm_quit && abort ;;
             100) ;;
         esac
         if (( i < 0 )); then abort; fi
