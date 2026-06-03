@@ -12,6 +12,218 @@ STEP_TOTAL=5
 # CURRENT_STEP is set by the main loop (1-based) so wrappers can render "Step N/5".
 CURRENT_STEP=1
 
+# --- i18n ---
+LANG_CHOICE="en"   # "en" | "ko"; overridden by pick_language
+
+declare -A MSG_en=(
+    [backtitle]="Xpenology VM Installer for Proxmox VE"
+    [root_err]="This script must be run as root."
+    [canceled]="Canceled."
+    [err_title]="Invalid"
+    [err_generic]="Error"
+    [creating_vm]="Creating VM %s..."
+    [sec_core]="Core VM"
+    [core_vmid_prompt]="Enter VM ID"
+    [core_vmname_prompt]="Enter VM Name"
+    [core_cores_prompt]="Enter CPU Cores"
+    [core_ram_prompt]="Enter RAM in MB"
+    [err_vmid_empty]="VM ID cannot be empty."
+    [err_vmname_empty]="VM Name cannot be empty."
+    [err_cores]="Invalid number of cores."
+    [err_ram]="Invalid RAM size."
+    [sec_disk]="Data Disk"
+    [disk_bus_prompt]="Select the disk bus type for the VM."
+    [sec_storage_mode]="Storage Mode"
+    [storage_mode_prompt]="Choose how the VM gets its data disk(s)."
+    [mode_virtual]="Create a virtual data disk"
+    [mode_passthrough]="Pass through physical disk(s)"
+    [disk_size_prompt]="Enter Data Disk Size in GB"
+    [err_disk_size]="Invalid disk size."
+    [storage_select_prompt]="Select storage for the DATA disk (%sG)."
+    [sec_passthrough]="Disk Passthrough"
+    [pt_no_free_title]="No free disks"
+    [pt_no_free_body]="No unused physical disks were found. (All disks appear mounted, part of LVM/ZFS/RAID, the boot disk, or already attached to a VM.)"
+    [pt_heads_up_title]="Heads up"
+    [pt_heads_up_body]="%s disk(s) are hidden because they appear in use (boot/LVM/ZFS/RAID/mounted or claimed by a VM). Only safe, unused disks are listed."
+    [pt_select_prompt]="Select physical disk(s) to pass through (space toggles):"
+    [pt_nothing_title]="Nothing selected"
+    [pt_nothing_body]="Select at least one disk, or go Back to choose a virtual disk."
+    [pt_confirm_title]="Confirm passthrough"
+    [pt_confirm_body]="These PHYSICAL disks will be attached to VM %s as-is. Make sure they are NOT used by the host or another VM — doing so can cause data loss.%s\n\nProceed?"
+    [sec_storage]="Storage"
+    [sec_network]="Network"
+    [storage_none_body]="No suitable storage with available space found for content type '%s'."
+    [bridge_none_body]="No active network bridge found."
+    [network_select_prompt]="Select the network bridge for the VM."
+    [sec_bootloader]="Bootloader"
+    [boot_prompt]="Choose a bootloader image"
+    [boot_resolving]="Resolving latest %s version..."
+    [boot_net_err_title]="Network"
+    [boot_net_err_body]="Could not reach GitHub to resolve the latest version. Check connectivity and retry."
+    [boot_empty_tag]="Empty version tag resolved."
+    [boot_url_err]="Could not build download URL."
+    [sec_review]="Review & Create"
+    [review_prompt]="Review your configuration, then create the VM:"
+    [review_create]="==> Create VM now <=="
+    [rev_vmid]="VM ID"
+    [rev_vmname]="VM Name"
+    [rev_cores]="CPU Cores"
+    [rev_ram]="RAM"
+    [rev_bus]="Disk Bus"
+    [rev_storage]="Storage"
+    [rev_bridge]="Network Bridge"
+    [rev_bootloader]="Bootloader"
+    [storage_line_virtual]="virtual %sG on %s"
+    [storage_line_passthrough]="passthrough (%s disk(s))"
+    [pt_create_guard_title]="No data disk"
+    [pt_create_guard_body]="Passthrough mode is selected but no physical disks are chosen. Edit Storage to pick disk(s), or switch to a virtual disk."
+    [dl_label]="Downloading %s %s..."
+    [dl_fail_title]="Download failed"
+    [dl_fail_body]="Download failed. Retry?"
+    [extracting_title]="Extracting"
+    [extracting_body]="Extracting %s image..."
+    [extract_fail_title]="Extract failed"
+    [extract_fail_body]="Could not find the .img after extraction. Retry?"
+    [dl_gauge_fallback_title]="Downloading"
+    [dl_gauge_fallback_body]="Progress bar unavailable — downloading %s..."
+    [vm_config_done]="VM configuration complete!"
+    [start_title]="Start VM?"
+    [start_body]="Would you like to start the new virtual machine now?"
+    [vm_create_failed]="VM creation failed."
+    [disk_attach_failed]="Failed to attach data disk."
+    [pt_attach_failed]="Failed to pass through disk: %s"
+    [rollback_title]="Rollback"
+    [rollback_body]="Destroy partially-created VM %s?"
+    [status_started]="Started"
+    [status_not_started]="Created (Not Started)"
+    [summary_header]="--- VM Summary ---"
+    [sum_vmid]="VM ID: %s"
+    [sum_vmname]="VM Name: %s"
+    [sum_status]="Status: %s"
+    [sum_cores]="CPU Cores: %s"
+    [sum_ram]="RAM: %s MB"
+    [sum_bus]="Disk Bus: %s"
+    [sum_network]="Network: %s"
+    [sum_bootloader]="Bootloader: %s %s (attached from %s)"
+    [sum_data_passthrough]="Data Disks (passthrough):"
+    [sum_disk_item]="  - %s"
+    [sum_data_virtual]="Data Disk: %sG on %s"
+    [summary_footer]="------------------"
+    [sum_manage]="You can now manage the VM from the Proxmox web interface."
+    [btn_back]="Back"
+    [btn_cancel]="Cancel"
+    [step_word]="Step"
+)
+declare -A MSG_ko=(
+    [backtitle]="Proxmox VE용 Xpenology VM 설치 마법사"
+    [root_err]="이 스크립트는 root로 실행해야 합니다."
+    [canceled]="취소되었습니다."
+    [err_title]="입력 오류"
+    [err_generic]="오류"
+    [creating_vm]="VM %s 생성 중..."
+    [sec_core]="기본 VM 설정"
+    [core_vmid_prompt]="VM ID를 입력하세요"
+    [core_vmname_prompt]="VM 이름을 입력하세요"
+    [core_cores_prompt]="CPU 코어 수를 입력하세요"
+    [core_ram_prompt]="RAM 용량(MB)을 입력하세요"
+    [err_vmid_empty]="VM ID는 비워둘 수 없습니다."
+    [err_vmname_empty]="VM 이름은 비워둘 수 없습니다."
+    [err_cores]="잘못된 코어 수입니다."
+    [err_ram]="잘못된 RAM 용량입니다."
+    [sec_disk]="데이터 디스크"
+    [disk_bus_prompt]="VM의 디스크 버스 유형을 선택하세요."
+    [sec_storage_mode]="스토리지 모드"
+    [storage_mode_prompt]="VM이 데이터 디스크를 얻는 방식을 선택하세요."
+    [mode_virtual]="가상 데이터 디스크 생성"
+    [mode_passthrough]="물리 디스크 패스스루"
+    [disk_size_prompt]="데이터 디스크 크기(GB)를 입력하세요"
+    [err_disk_size]="잘못된 디스크 크기입니다."
+    [storage_select_prompt]="데이터 디스크(%sG)를 저장할 스토리지를 선택하세요."
+    [sec_passthrough]="디스크 패스스루"
+    [pt_no_free_title]="사용 가능한 디스크 없음"
+    [pt_no_free_body]="사용 중이지 않은 물리 디스크가 없습니다. (모든 디스크가 마운트됨/LVM·ZFS·RAID 구성원/부팅 디스크이거나 이미 VM에 연결되어 있습니다.)"
+    [pt_heads_up_title]="참고"
+    [pt_heads_up_body]="%s개 디스크는 사용 중으로 판단되어 숨겨졌습니다(부팅/LVM/ZFS/RAID/마운트 또는 VM 점유). 안전한 미사용 디스크만 표시됩니다."
+    [pt_select_prompt]="패스스루할 물리 디스크를 선택하세요(스페이스로 토글):"
+    [pt_nothing_title]="선택 없음"
+    [pt_nothing_body]="최소 한 개의 디스크를 선택하거나, 뒤로 가서 가상 디스크를 선택하세요."
+    [pt_confirm_title]="패스스루 확인"
+    [pt_confirm_body]="다음 물리 디스크가 VM %s에 그대로 연결됩니다. 호스트나 다른 VM에서 사용 중이 아닌지 반드시 확인하세요 — 그렇지 않으면 데이터 손실이 발생할 수 있습니다.%s\n\n계속할까요?"
+    [sec_storage]="스토리지"
+    [sec_network]="네트워크"
+    [storage_none_body]="콘텐츠 유형 '%s'에 사용 가능한 공간이 있는 적절한 스토리지를 찾지 못했습니다."
+    [bridge_none_body]="활성 네트워크 브리지를 찾지 못했습니다."
+    [network_select_prompt]="VM의 네트워크 브리지를 선택하세요."
+    [sec_bootloader]="부트로더"
+    [boot_prompt]="부트로더 이미지를 선택하세요"
+    [boot_resolving]="%s 최신 버전을 확인하는 중..."
+    [boot_net_err_title]="네트워크"
+    [boot_net_err_body]="GitHub에 접속해 최신 버전을 확인할 수 없습니다. 연결을 확인하고 다시 시도하세요."
+    [boot_empty_tag]="확인된 버전 태그가 비어 있습니다."
+    [boot_url_err]="다운로드 URL을 생성할 수 없습니다."
+    [sec_review]="검토 및 생성"
+    [review_prompt]="설정을 검토한 뒤 VM을 생성하세요:"
+    [review_create]="==> 지금 VM 생성 <=="
+    [rev_vmid]="VM ID"
+    [rev_vmname]="VM 이름"
+    [rev_cores]="CPU 코어"
+    [rev_ram]="RAM"
+    [rev_bus]="디스크 버스"
+    [rev_storage]="스토리지"
+    [rev_bridge]="네트워크 브리지"
+    [rev_bootloader]="부트로더"
+    [storage_line_virtual]="가상 %sG (%s)"
+    [storage_line_passthrough]="패스스루 (%s개 디스크)"
+    [pt_create_guard_title]="데이터 디스크 없음"
+    [pt_create_guard_body]="패스스루 모드인데 선택된 물리 디스크가 없습니다. 스토리지를 수정해 디스크를 선택하거나 가상 디스크로 전환하세요."
+    [dl_label]="%s %s 다운로드 중..."
+    [dl_fail_title]="다운로드 실패"
+    [dl_fail_body]="다운로드에 실패했습니다. 다시 시도할까요?"
+    [extracting_title]="압축 해제"
+    [extracting_body]="%s 이미지를 압축 해제하는 중..."
+    [extract_fail_title]="압축 해제 실패"
+    [extract_fail_body]="압축 해제 후 .img 파일을 찾지 못했습니다. 다시 시도할까요?"
+    [dl_gauge_fallback_title]="다운로드"
+    [dl_gauge_fallback_body]="진행률 표시줄을 사용할 수 없습니다 — %s 다운로드 중..."
+    [vm_config_done]="VM 구성 완료!"
+    [start_title]="VM을 시작할까요?"
+    [start_body]="지금 새 가상 머신을 시작하시겠습니까?"
+    [vm_create_failed]="VM 생성에 실패했습니다."
+    [disk_attach_failed]="데이터 디스크 연결에 실패했습니다."
+    [pt_attach_failed]="디스크 패스스루에 실패했습니다: %s"
+    [rollback_title]="롤백"
+    [rollback_body]="부분 생성된 VM %s을(를) 삭제할까요?"
+    [status_started]="시작됨"
+    [status_not_started]="생성됨 (시작 안 함)"
+    [summary_header]="--- VM 요약 ---"
+    [sum_vmid]="VM ID: %s"
+    [sum_vmname]="VM 이름: %s"
+    [sum_status]="상태: %s"
+    [sum_cores]="CPU 코어: %s"
+    [sum_ram]="RAM: %s MB"
+    [sum_bus]="디스크 버스: %s"
+    [sum_network]="네트워크: %s"
+    [sum_bootloader]="부트로더: %s %s (%s에서 연결)"
+    [sum_data_passthrough]="데이터 디스크 (패스스루):"
+    [sum_disk_item]="  - %s"
+    [sum_data_virtual]="데이터 디스크: %sG (%s)"
+    [summary_footer]="------------------"
+    [sum_manage]="이제 Proxmox 웹 인터페이스에서 VM을 관리할 수 있습니다."
+    [btn_back]="뒤로"
+    [btn_cancel]="취소"
+    [step_word]="단계"
+)
+
+# Return the current-language string for a key; fall back to English, then the key itself.
+t() {
+    local -n _tbl="MSG_${LANG_CHOICE}"
+    if [[ -v _tbl[$1] ]]; then echo "${_tbl[$1]}"
+    elif [[ -v MSG_en[$1] ]]; then echo "${MSG_en[$1]}"
+    else echo "$1"; fi
+}
+# printf template: tf <key> [args...]
+tf() { local _k="$1"; shift; printf "$(t "$_k")" "$@"; }
+
 # --- Helper Functions ---
 
 # Display a message with a color
@@ -89,11 +301,11 @@ select_storage() {
         .storage + "\t" + "[" + .type + "] " + ((.avail / 1073741824) | tostring | .[0:5]) + "G / " + ((.total / 1073741824) | tostring | .[0:5]) + "G"
     ')
     if [ ${#whiptail_options[@]} -eq 0 ]; then
-        wt_msg "Storage" "No suitable storage with available space found for content type '$content_type'."
+        wt_msg "$(t sec_storage)" "$(tf storage_none_body "$content_type")"
         return 3
     fi
     local out
-    out=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "Storage")" \
+    out=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "$(t sec_storage)")" \
         --cancel-button "$(_wt_cancel_label)" --default-item "$default_item" \
         --menu "$prompt_text" 20 78 10 "${whiptail_options[@]}" 3>&1 1>&2 2>&3)
     local rc=$?
@@ -109,11 +321,11 @@ select_bridge() {
         whiptail_options+=("$name" "$desc")
     done < <(pvesh get /nodes/$(hostname)/network --output-format json | "$JQ_CMD" -r '.[] | select(.type == "bridge" and (has("disable") | not)) | .iface + "\t" + (.cidr // "no CIDR")')
     if [ ${#whiptail_options[@]} -eq 0 ]; then
-        wt_msg "Network" "No active network bridge found."
+        wt_msg "$(t sec_network)" "$(t bridge_none_body)"
         return 3
     fi
     local out
-    out=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "Network")" \
+    out=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "$(t sec_network)")" \
         --cancel-button "$(_wt_cancel_label)" --default-item "$default_item" \
         --menu "$prompt_text" 20 78 10 "${whiptail_options[@]}" 3>&1 1>&2 2>&3)
     local rc=$?
@@ -170,10 +382,10 @@ passthrough_candidates() {
 # --- whiptail wrappers (consistent branding + button labels) ---
 
 # Title like "Step 2/5 · Data Disk"
-_wt_title() { echo "Step ${CURRENT_STEP}/${STEP_TOTAL} · $1"; }
+_wt_title() { echo "$(t step_word) ${CURRENT_STEP}/${STEP_TOTAL} · $1"; }
 
 # Back button label: first step shows "Cancel", later steps show "Back".
-_wt_cancel_label() { (( CURRENT_STEP <= 1 )) && echo "Cancel" || echo "Back"; }
+_wt_cancel_label() { (( CURRENT_STEP <= 1 )) && echo "$(t btn_cancel)" || echo "$(t btn_back)"; }
 
 # Input box. Args: section_title, prompt, default. Echoes value. rc 0=OK, 1=Back/Cancel.
 wt_input() {
@@ -238,7 +450,7 @@ download_with_gauge() {
     rc=$(cat /tmp/.xpenol_dl_rc 2>/dev/null || echo 1)
     rm -f /tmp/.xpenol_dl_rc
     if (( rc != 0 )); then
-        wt_infobox "Downloading" "Progress bar unavailable — downloading ${label}..."
+        wt_infobox "$(t dl_gauge_fallback_title)" "$(tf dl_gauge_fallback_body "$label")"
         curl --fail -kL "$url" -o "$dest"; rc=$?
     fi
     return $rc
@@ -248,21 +460,21 @@ download_with_gauge() {
 # --- Step functions: rc 0=next, 1=back, 2=cancel, 100=redisplay ---
 
 step_core() {
-    VMID=$(wt_input "Core VM" "Enter VM ID" "${VMID:-$(pvesh get /cluster/nextid)}") || return 1
-    [ -n "$VMID" ] || { wt_msg "Invalid" "VM ID cannot be empty."; return 100; }
-    VMNAME=$(wt_input "Core VM" "Enter VM Name" "${VMNAME:-Xpenology}") || return 1
-    [ -n "$VMNAME" ] || { wt_msg "Invalid" "VM Name cannot be empty."; return 100; }
-    CORES=$(wt_input "Core VM" "Enter CPU Cores" "${CORES:-2}") || return 1
-    [[ "$CORES" =~ ^[0-9]+$ ]] || { wt_msg "Invalid" "Invalid number of cores."; return 100; }
-    RAM=$(wt_input "Core VM" "Enter RAM in MB" "${RAM:-2048}") || return 1
-    [[ "$RAM" =~ ^[0-9]+$ ]] || { wt_msg "Invalid" "Invalid RAM size."; return 100; }
+    VMID=$(wt_input "$(t sec_core)" "$(t core_vmid_prompt)" "${VMID:-$(pvesh get /cluster/nextid)}") || return 1
+    [ -n "$VMID" ] || { wt_msg "$(t err_title)" "$(t err_vmid_empty)"; return 100; }
+    VMNAME=$(wt_input "$(t sec_core)" "$(t core_vmname_prompt)" "${VMNAME:-Xpenology}") || return 1
+    [ -n "$VMNAME" ] || { wt_msg "$(t err_title)" "$(t err_vmname_empty)"; return 100; }
+    CORES=$(wt_input "$(t sec_core)" "$(t core_cores_prompt)" "${CORES:-2}") || return 1
+    [[ "$CORES" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_cores)"; return 100; }
+    RAM=$(wt_input "$(t sec_core)" "$(t core_ram_prompt)" "${RAM:-2048}") || return 1
+    [[ "$RAM" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_ram)"; return 100; }
     return 0
 }
 
 step_storage() {
     local choice default_bus
     case "$BUS_TYPE_PARAM" in scsi) default_bus=1 ;; sata) default_bus=2 ;; *) default_bus=1 ;; esac
-    choice=$(wt_menu "Data Disk" "Select the disk bus type for the VM." "$default_bus" \
+    choice=$(wt_menu "$(t sec_disk)" "$(t disk_bus_prompt)" "$default_bus" \
         "1" "VirtIO SCSI (DS3622xs+)" \
         "2" "SATA (SA6400, DS920+, etc)") || return 1
     case $choice in
@@ -274,9 +486,9 @@ step_storage() {
     local mode_default
     case "$STORAGE_MODE" in passthrough) mode_default="passthrough" ;; *) mode_default="virtual" ;; esac
     local mode
-    mode=$(wt_menu "Storage Mode" "Choose how the VM gets its data disk(s)." "$mode_default" \
-        "virtual"     "Create a virtual data disk" \
-        "passthrough" "Pass through physical disk(s)") || return 1
+    mode=$(wt_menu "$(t sec_storage_mode)" "$(t storage_mode_prompt)" "$mode_default" \
+        "virtual"     "$(t mode_virtual)" \
+        "passthrough" "$(t mode_passthrough)") || return 1
     case "$mode" in
         virtual)     STORAGE_MODE="virtual";     step_storage_virtual ;;
         passthrough) STORAGE_MODE="passthrough"; step_storage_passthrough ;;
@@ -285,9 +497,9 @@ step_storage() {
 }
 
 step_storage_virtual() {
-    DISK_SIZE=$(wt_input "Data Disk" "Enter Data Disk Size in GB" "${DISK_SIZE:-32}") || return 1
-    [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || { wt_msg "Invalid" "Invalid disk size."; return 100; }
-    DATA_STORAGE=$(select_storage "Select storage for the DATA disk (${DISK_SIZE}G)." "images" "$DATA_STORAGE")
+    DISK_SIZE=$(wt_input "$(t sec_disk)" "$(t disk_size_prompt)" "${DISK_SIZE:-32}") || return 1
+    [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_disk_size)"; return 100; }
+    DATA_STORAGE=$(select_storage "$(tf storage_select_prompt "$DISK_SIZE")" "images" "$DATA_STORAGE")
     case $? in 0) ;; 1) return 1 ;; *) return 100 ;; esac
     return 0
 }
@@ -301,27 +513,27 @@ step_storage_passthrough() {
     done < <(passthrough_candidates)
     total=$(pvesh get /nodes/$(hostname)/disks/list --output-format json | "$JQ_CMD" -r 'length')
     if (( shown == 0 )); then
-        wt_msg "No free disks" "No unused physical disks were found. (All disks appear mounted, part of LVM/ZFS/RAID, the boot disk, or already attached to a VM.)"
+        wt_msg "$(t pt_no_free_title)" "$(t pt_no_free_body)"
         return 100
     fi
     if (( total > shown )); then
-        wt_msg "Heads up" "$((total - shown)) disk(s) are hidden because they appear in use (boot/LVM/ZFS/RAID/mounted or claimed by a VM). Only safe, unused disks are listed."
+        wt_msg "$(t pt_heads_up_title)" "$(tf pt_heads_up_body "$((total - shown))")"
     fi
     local selected
-    selected=$(wt_checklist "Disk Passthrough" "Select physical disk(s) to pass through (space toggles):" "${opts[@]}") || return 1
-    [ -n "$selected" ] || { wt_msg "Nothing selected" "Select at least one disk, or go Back to choose a virtual disk."; return 100; }
+    selected=$(wt_checklist "$(t sec_passthrough)" "$(t pt_select_prompt)" "${opts[@]}") || return 1
+    [ -n "$selected" ] || { wt_msg "$(t pt_nothing_title)" "$(t pt_nothing_body)"; return 100; }
     PASSTHRU_DISKS=()
     eval "PASSTHRU_DISKS=($selected)"
     local list="" d
     for d in "${PASSTHRU_DISKS[@]}"; do list+=$'\n'"  • $d"; done
-    if ! wt_yesno "Confirm passthrough" "These PHYSICAL disks will be attached to VM ${VMID} as-is. Make sure they are NOT used by the host or another VM — doing so can cause data loss.${list}\n\nProceed?" 18 74; then
+    if ! wt_yesno "$(t pt_confirm_title)" "$(tf pt_confirm_body "$VMID" "$list")" 18 74; then
         return 100
     fi
     return 0
 }
 
 step_network() {
-    BRIDGE=$(select_bridge "Select the network bridge for the VM." "$BRIDGE")
+    BRIDGE=$(select_bridge "$(t network_select_prompt)" "$BRIDGE")
     case $? in 0) ;; 1) return 1 ;; *) return 100 ;; esac
     return 0
 }
@@ -330,7 +542,7 @@ step_bootloader() {
     local kind_default
     case "$IMAGE_NAME" in m-shell) kind_default=1 ;; RR) kind_default=2 ;; *) kind_default=1 ;; esac
     local choice
-    choice=$(wt_menu "Bootloader" "Choose a bootloader image" "$kind_default" \
+    choice=$(wt_menu "$(t sec_bootloader)" "$(t boot_prompt)" "$kind_default" \
         "1" "m-shell" "2" "RR") || return 1
     case $choice in
         1) IMAGE_NAME="m-shell" ;;
@@ -340,10 +552,10 @@ step_bootloader() {
 
     local repo
     repo=$(bootloader_repo "$IMAGE_NAME")
-    wt_infobox "Bootloader" "Resolving latest ${IMAGE_NAME} version..."
-    IMG_TAG=$(fetch_latest_tag "$repo") || { wt_msg "Network" "Could not reach GitHub to resolve the latest version. Check connectivity and retry."; return 100; }
-    [ -n "$IMG_TAG" ] || { wt_msg "Error" "Empty version tag resolved."; return 100; }
-    IMG_URL=$(build_img_url "$IMAGE_NAME" "$IMG_TAG") || { wt_msg "Error" "Could not build download URL."; return 100; }
+    wt_infobox "$(t sec_bootloader)" "$(tf boot_resolving "$IMAGE_NAME")"
+    IMG_TAG=$(fetch_latest_tag "$repo") || { wt_msg "$(t boot_net_err_title)" "$(t boot_net_err_body)"; return 100; }
+    [ -n "$IMG_TAG" ] || { wt_msg "$(t err_generic)" "$(t boot_empty_tag)"; return 100; }
+    IMG_URL=$(build_img_url "$IMAGE_NAME" "$IMG_TAG") || { wt_msg "$(t err_generic)" "$(t boot_url_err)"; return 100; }
 
     prepare_bootloader || return 100
     return 0
@@ -353,27 +565,27 @@ step_confirm() {
     local choice storage_line
     while true; do
         if [ "$STORAGE_MODE" = "passthrough" ]; then
-            storage_line="Storage ........ passthrough (${#PASSTHRU_DISKS[@]} disk(s))"
+            storage_line="$(t rev_storage): $(tf storage_line_passthrough "${#PASSTHRU_DISKS[@]}")"
         else
-            storage_line="Storage ........ virtual ${DISK_SIZE}G on ${DATA_STORAGE}"
+            storage_line="$(t rev_storage): $(tf storage_line_virtual "$DISK_SIZE" "$DATA_STORAGE")"
         fi
-        choice=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "Review & Create")" \
-            --cancel-button "Back" \
-            --menu "Review your configuration, then create the VM:" 22 78 12 \
-            "create"  "==> Create VM now <==" \
-            "VMID"    "VM ID .......... ${VMID}" \
-            "VMNAME"  "VM Name ........ ${VMNAME}" \
-            "CORES"   "CPU Cores ...... ${CORES}" \
-            "RAM"     "RAM ............ ${RAM} MB" \
-            "BUS"     "Disk Bus ....... ${BUS_TYPE_PARAM}" \
+        choice=$(whiptail --backtitle "$BACKTITLE" --title "$(_wt_title "$(t sec_review)")" \
+            --cancel-button "$(t btn_back)" \
+            --menu "$(t review_prompt)" 22 78 12 \
+            "create"  "$(t review_create)" \
+            "VMID"    "$(t rev_vmid): ${VMID}" \
+            "VMNAME"  "$(t rev_vmname): ${VMNAME}" \
+            "CORES"   "$(t rev_cores): ${CORES}" \
+            "RAM"     "$(t rev_ram): ${RAM} MB" \
+            "BUS"     "$(t rev_bus): ${BUS_TYPE_PARAM}" \
             "STORAGE" "$storage_line" \
-            "BRIDGE"  "Network Bridge . ${BRIDGE}" \
-            "BOOT"    "Bootloader ..... ${IMAGE_NAME} ${IMG_TAG}" \
+            "BRIDGE"  "$(t rev_bridge): ${BRIDGE}" \
+            "BOOT"    "$(t rev_bootloader): ${IMAGE_NAME} ${IMG_TAG}" \
             3>&1 1>&2 2>&3) || return 1
         case "$choice" in
             create)
                 if [ "$STORAGE_MODE" = "passthrough" ] && (( ${#PASSTHRU_DISKS[@]} == 0 )); then
-                    wt_msg "No data disk" "Passthrough mode is selected but no physical disks are chosen. Edit Storage to pick disk(s), or switch to a virtual disk."
+                    wt_msg "$(t pt_create_guard_title)" "$(t pt_create_guard_body)"
                     continue
                 fi
                 return 0
@@ -400,8 +612,19 @@ cleanup() {
 
 abort() {
     cleanup
-    msg "Canceled." "$R"
+    msg "$(t canceled)" "$R"
     exit 1
+}
+
+# One-time language selection shown before the wizard. Cancel/Esc = quit.
+pick_language() {
+    local choice
+    choice=$(whiptail --backtitle "$BACKTITLE" --title "Language / 언어" \
+        --menu "Select your language / 언어를 선택하세요" 12 60 2 \
+        "en" "English" \
+        "ko" "한국어" 3>&1 1>&2 2>&3) || abort
+    LANG_CHOICE="$choice"
+    BACKTITLE="$(t backtitle)"
 }
 
 # Download + extract the selected bootloader. rc 0 on success.
@@ -410,14 +633,14 @@ prepare_bootloader() {
     IMG_PATH="${BOOTLOADER_DIR}/${IMAGE_NAME}-${VMID}.img"
     while true; do
         if [[ "$IMG_URL" == *.zip ]]; then
-            download_with_gauge "$IMG_URL" "${IMG_PATH}.zip" "Downloading ${IMAGE_NAME} ${IMG_TAG}..."
+            download_with_gauge "$IMG_URL" "${IMG_PATH}.zip" "$(tf dl_label "$IMAGE_NAME" "$IMG_TAG")"
         else
-            download_with_gauge "$IMG_URL" "${IMG_PATH}.gz" "Downloading ${IMAGE_NAME} ${IMG_TAG}..."
+            download_with_gauge "$IMG_URL" "${IMG_PATH}.gz" "$(tf dl_label "$IMAGE_NAME" "$IMG_TAG")"
         fi
         if (( $? != 0 )); then
-            if wt_yesno "Download failed" "Download failed. Retry?"; then continue; else cleanup; return 1; fi
+            if wt_yesno "$(t dl_fail_title)" "$(t dl_fail_body)"; then continue; else cleanup; return 1; fi
         fi
-        wt_infobox "Extracting" "Extracting ${IMAGE_NAME} image..."
+        wt_infobox "$(t extracting_title)" "$(tf extracting_body "$IMAGE_NAME")"
         if [[ "$IMG_URL" == *.zip ]]; then
             unzip -o "${IMG_PATH}.zip" -d "$BOOTLOADER_DIR" >/dev/null 2>&1
             [ -f "${BOOTLOADER_DIR}/rr.img" ] && mv "${BOOTLOADER_DIR}/rr.img" "$IMG_PATH"
@@ -426,83 +649,86 @@ prepare_bootloader() {
         fi
         cleanup
         if [ -f "$IMG_PATH" ]; then return 0; fi
-        if ! wt_yesno "Extract failed" "Could not find the .img after extraction. Retry?"; then return 1; fi
+        if ! wt_yesno "$(t extract_fail_title)" "$(t extract_fail_body)"; then return 1; fi
     done
 }
 
 # Create + configure the VM. Offers rollback on failure.
 create_vm() {
-    wt_infobox "Creating VM" "Creating VM ${VMID}..."
+    wt_infobox "$(t sec_review)" "$(tf creating_vm "$VMID")"
     if ! qm create "$VMID" --name "$VMNAME" --memory "$RAM" --cores "$CORES" --bios seabios --ostype l26; then
-        rollback "VM creation failed."; exit 1
+        rollback "$(t vm_create_failed)"; exit 1
     fi
     if [ "$BUS_TYPE_PARAM" == "scsi" ]; then qm set "$VMID" --scsihw virtio-scsi-pci; fi
     if [ "$STORAGE_MODE" = "passthrough" ]; then
         local idx=0 disk
         for disk in "${PASSTHRU_DISKS[@]}"; do
             if ! qm set "$VMID" --"${BUS_TYPE_PARAM}${idx}" "$disk"; then
-                rollback "Failed to pass through disk: $disk"; exit 1
+                rollback "$(tf pt_attach_failed "$disk")"; exit 1
             fi
             (( idx++ ))
         done
     else
         if ! qm set "$VMID" --"${BUS_TYPE_PARAM}0" "${DATA_STORAGE}:${DISK_SIZE},discard=on,ssd=1"; then
-            rollback "Failed to attach data disk."; exit 1
+            rollback "$(t disk_attach_failed)"; exit 1
         fi
     fi
     qm set "$VMID" --net0 virtio,bridge="$BRIDGE"
     local qm_args="-drive if=none,id=synoboot,format=raw,file=${IMG_PATH} -device qemu-xhci,id=xhci -device usb-storage,bus=xhci.0,drive=synoboot,bootindex=0"
     qm set "$VMID" --args "$qm_args"
-    msg "VM configuration complete!" "$G"
+    msg "$(t vm_config_done)" "$G"
 
-    if wt_yesno "Start VM?" "Would you like to start the new virtual machine now?"; then
-        qm start "$VMID"; VM_STATUS="Started"
+    if wt_yesno "$(t start_title)" "$(t start_body)"; then
+        qm start "$VMID"; VM_STATUS="$(t status_started)"
     else
-        VM_STATUS="Created (Not Started)"
+        VM_STATUS="$(t status_not_started)"
     fi
     print_summary
 }
 
 rollback() {  # message
-    wt_msg "Error" "$1"
-    if wt_yesno "Rollback" "Destroy partially-created VM ${VMID}?"; then
+    wt_msg "$(t err_generic)" "$1"
+    if wt_yesno "$(t rollback_title)" "$(tf rollback_body "$VMID")"; then
         qm destroy "$VMID" --purge 2>/dev/null
     fi
 }
 
 print_summary() {
-    msg "--- VM Summary ---" "$B"
-    msg "VM ID: $VMID" "$G"
-    msg "VM Name: $VMNAME" "$G"
-    msg "Status: $VM_STATUS" "$G"
-    msg "CPU Cores: $CORES" "$G"
-    msg "RAM: $RAM MB" "$G"
-    msg "Disk Bus: $BUS_TYPE_PARAM" "$G"
-    msg "Network: $BRIDGE" "$G"
-    msg "Bootloader: ${IMAGE_NAME} ${IMG_TAG} (attached from ${IMG_PATH})" "$G"
+    msg "$(t summary_header)" "$B"
+    msg "$(tf sum_vmid "$VMID")" "$G"
+    msg "$(tf sum_vmname "$VMNAME")" "$G"
+    msg "$(tf sum_status "$VM_STATUS")" "$G"
+    msg "$(tf sum_cores "$CORES")" "$G"
+    msg "$(tf sum_ram "$RAM")" "$G"
+    msg "$(tf sum_bus "$BUS_TYPE_PARAM")" "$G"
+    msg "$(tf sum_network "$BRIDGE")" "$G"
+    msg "$(tf sum_bootloader "$IMAGE_NAME" "$IMG_TAG" "$IMG_PATH")" "$G"
     if [ "$STORAGE_MODE" = "passthrough" ]; then
-        msg "Data Disks (passthrough):" "$G"
+        msg "$(t sum_data_passthrough)" "$G"
         local d
-        for d in "${PASSTHRU_DISKS[@]}"; do msg "  - $d" "$G"; done
+        for d in "${PASSTHRU_DISKS[@]}"; do msg "$(tf sum_disk_item "$d")" "$G"; done
     else
-        msg "Data Disk: ${DISK_SIZE}G on $DATA_STORAGE" "$G"
+        msg "$(tf sum_data_virtual "$DISK_SIZE" "$DATA_STORAGE")" "$G"
     fi
-    msg "------------------" "$B"
-    msg "You can now manage the VM from the Proxmox web interface." "$Y"
+    msg "$(t summary_footer)" "$B"
+    msg "$(t sum_manage)" "$Y"
 }
 
 
 # --- Main Logic ---
 
 main() {
-    if [ "$(id -u)" -ne 0 ]; then msg "This script must be run as root." "$R"; exit 1; fi
+    if [ "$(id -u)" -ne 0 ]; then msg "$(t root_err)" "$R"; exit 1; fi
     install_package "jq";       JQ_CMD=$(which jq)
     install_package "unzip"
     install_package "whiptail"
 
     # Wizard state (declared here so a re-run starts clean).
+    LANG_CHOICE="en"
+    BACKTITLE="$(t backtitle)"
     STORAGE_MODE="virtual"; PASSTHRU_DISKS=()
     trap cleanup EXIT INT TERM
+    pick_language
 
     local steps=(step_core step_storage step_network step_bootloader step_confirm)
     local i=0
