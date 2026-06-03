@@ -84,8 +84,6 @@ declare -A MSG_en=(
     [extracting_body]="Extracting %s image..."
     [extract_fail_title]="Extract failed"
     [extract_fail_body]="Could not find the .img after extraction. Retry?"
-    [dl_gauge_fallback_title]="Downloading"
-    [dl_gauge_fallback_body]="Progress bar unavailable — downloading %s..."
     [vm_config_done]="VM configuration complete!"
     [start_title]="Start VM?"
     [start_body]="Would you like to start the new virtual machine now?"
@@ -183,8 +181,6 @@ declare -A MSG_ko=(
     [extracting_body]="%s 이미지를 압축 해제하는 중..."
     [extract_fail_title]="압축 해제 실패"
     [extract_fail_body]="압축 해제 후 .img 파일을 찾지 못했습니다. 다시 시도할까요?"
-    [dl_gauge_fallback_title]="다운로드"
-    [dl_gauge_fallback_body]="진행률 표시줄을 사용할 수 없습니다 — %s 다운로드 중..."
     [vm_config_done]="VM 구성 완료!"
     [start_title]="VM을 시작할까요?"
     [start_body]="지금 새 가상 머신을 시작하시겠습니까?"
@@ -274,11 +270,6 @@ gauge_pct() {  # cur total
     echo "$p"
 }
 
-# Resolve a URL's size in bytes (follows redirects; last Content-Length wins). 0 if unknown.
-remote_size() {  # url
-    curl -sILk --max-time 20 "$1" 2>/dev/null \
-        | awk 'BEGIN{IGNORECASE=1} /^content-length:/{v=$2} END{gsub(/[^0-9]/,"",v); print v+0}'
-}
 
 # Read disks/list JSON on stdin; emit "by_id_link \t model size (serial)" for unused disks only.
 parse_disks() {
@@ -450,23 +441,23 @@ wt_infobox() {
     whiptail --backtitle "$BACKTITLE" --title "$1" --infobox "$2" "${3:-8}" "${4:-70}"
 }
 
-# Download with a real progress gauge driven by downloaded-bytes vs Content-Length.
-# curl's own meter is always suppressed (-s + 2>/dev/null) so nothing leaks onto the TUI.
+# Download with a whiptail progress gauge driven by downloaded bytes vs the
+# Content-Length read from the GET response headers (no separate HEAD needed).
+# curl's own meter is suppressed so nothing leaks onto the TUI.
 # Args: url, dest, label. rc 0 on success, non-zero on curl failure.
 download_with_gauge() {
-    local url="$1" dest="$2" label="$3" total rc cpid cur
-    total=$(remote_size "$url")
+    local url="$1" dest="$2" label="$3" rc cpid cur total hdr
+    hdr=$(mktemp)
     rm -f "$dest"
-    if ! [[ "$total" =~ ^[0-9]+$ ]] || (( total <= 0 )); then
-        # Unknown size: honest infobox + blocking download (no movable gauge possible).
-        wt_infobox "$(t dl_gauge_fallback_title)" "$(tf dl_gauge_fallback_body "$label")"
-        curl --fail -ksL "$url" -o "$dest" 2>/dev/null
-        return $?
-    fi
-    curl --fail -ksL "$url" -o "$dest" 2>/dev/null &
+    curl --fail -kL -o "$dest" -D "$hdr" "$url" 2>/dev/null &
     cpid=$!
     {
+        total=0
         while kill -0 "$cpid" 2>/dev/null; do
+            if (( total == 0 )) && [ -s "$hdr" ]; then
+                # mawk-safe, case-insensitive; last Content-Length wins (after redirects).
+                total=$(awk 'tolower($1)=="content-length:"{v=$2} END{gsub(/[^0-9]/,"",v); print v+0}' "$hdr")
+            fi
             cur=$(stat -c %s "$dest" 2>/dev/null || echo 0)
             gauge_pct "$cur" "$total"
             sleep 0.3
@@ -474,6 +465,7 @@ download_with_gauge() {
         echo 100
     } | whiptail --backtitle "$BACKTITLE" --gauge "$label" 8 70 0
     wait "$cpid"; rc=$?
+    rm -f "$hdr"
     return $rc
 }
 
@@ -748,7 +740,8 @@ main() {
     LANG_CHOICE="en"
     BACKTITLE="$(t backtitle)"
     STORAGE_MODE="virtual"; PASSTHRU_DISKS=()
-    trap cleanup EXIT INT TERM
+    trap cleanup EXIT
+    trap 'exit 130' INT TERM
     pick_language
 
     local steps=(step_core step_storage step_network step_bootloader step_confirm)
