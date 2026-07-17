@@ -258,7 +258,7 @@ bootloader_repo() {
 build_img_url() {
     local name="$1" tag="$2"
     case "$name" in
-        m-shell) echo "https://github.com/PeterSuh-Q3/tinycore-redpill/releases/download/${tag}/tinycore-redpill.${tag}.m-shell.img.gz" ;;
+        m-shell) echo "https://github.com/PeterSuh-Q3/tinycore-redpill/releases/download/${tag}/alpine-redpill.${tag}.m-shell.img.gz" ;;
         RR)      echo "https://github.com/RROrg/rr/releases/download/${tag}/rr-${tag}.img.zip" ;;
         *)       return 1 ;;
     esac
