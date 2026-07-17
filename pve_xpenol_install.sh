@@ -483,7 +483,7 @@ step_core() {
     [ -n "$VMNAME" ] || { wt_msg "$(t err_title)" "$(t err_vmname_empty)"; return 100; }
     CORES=$(wt_input "$(t sec_core)" "$(t core_cores_prompt)" "${CORES:-2}") || return $?
     [[ "$CORES" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_cores)"; return 100; }
-    RAM=$(wt_input "$(t sec_core)" "$(t core_ram_prompt)" "${RAM:-2048}") || return $?
+    RAM=$(wt_input "$(t sec_core)" "$(t core_ram_prompt)" "${RAM:-4096}") || return $?
     [[ "$RAM" =~ ^[0-9]+$ ]] || { wt_msg "$(t err_title)" "$(t err_ram)"; return 100; }
     return 0
 }
