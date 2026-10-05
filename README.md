@@ -8,6 +8,7 @@
 | --- | --- |
 | `proxmox_temperature.sh` | Proxmox VE 웹 UI에 CPU 온도를 표시하기 위해 `lm-sensors`를 설치하고 관련 파일을 수정합니다. 원상 복구 기능을 포함합니다. |
 | `pve_xpenol_install.sh` | Proxmox VE 환경에 Xpenology(Synology) VM을 자동으로 생성하고 설정합니다. |
+| `pve_mshell_bootloader_replace.sh` | 중지된 기존 Proxmox VM의 m-shell 부트로더 이미지를 최신 릴리스로 교체하고 P3의 `/user_config.json`을 이전합니다. [설계서](docs/pve_mshell_bootloader_replace_design.md) |
 | `pve_disk_passthrough.sh` | Proxmox VE 환경에서 물리 디스크를 VM에 직접 패스스루하는 작업을 대화형 인터페이스로 설정합니다. |
 | `ubuntu24_config.sh` | Ubuntu 24.04 서버의 초기 설정을 자동화합니다. (호스트네임, 고정 IP, 타임존, Docker, Dockge 등) |
 | `volume_move.sh` | Docker 볼륨을 백업하여 다른 서버로 이전하거나, 특정 로컬 경로의 데이터를 원격 서버와 동기화합니다. |
@@ -45,6 +46,11 @@ chmod +x pve_disk_passthrough.sh
 curl -o pve_xpenol_install.sh https://raw.githubusercontent.com/dalso0418/dalso-config/main/pve_xpenol_install.sh
 chmod +x pve_xpenol_install.sh
 ./pve_xpenol_install.sh
+
+# 기존 VM의 m-shell 부트로더 교체 (VM을 먼저 종료하고 Proxmox 호스트에서 root로 실행)
+curl -fLo pve_mshell_bootloader_replace.sh https://raw.githubusercontent.com/PeterSuh-Q3/dalso-config/main/pve_mshell_bootloader_replace.sh
+chmod +x pve_mshell_bootloader_replace.sh
+./pve_mshell_bootloader_replace.sh
 
 # Ubuntu 24.04 초기 설정
 curl -o ubuntu24_config.sh https://raw.githubusercontent.com/dalso0418/dalso-config/main/ubuntu24_config.sh
