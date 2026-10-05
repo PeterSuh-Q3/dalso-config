@@ -53,7 +53,7 @@ require_tools() {
         command -v "$tool" >/dev/null || fail "필요한 명령이 없습니다: $tool"
     done
     (( EUID == 0 )) || fail "Proxmox 호스트에서 root로 실행하세요."
-    [[ -t 0 && -t 1 ]] || fail "대화형 터미널에서 실행하세요."
+    [[ -t 0 && -t 2 ]] || fail "대화형 터미널에서 실행하세요."
 }
 
 # Accept only the canonical, unquoted raw-file mapping created by pve_xpenol_install.sh.
@@ -277,6 +277,11 @@ apply_change() {
 
 main() {
     local config args tag source_prefix
+    # `curl ... | sudo bash` uses stdin for the script itself. Restore it for whiptail.
+    if [[ ! -t 0 ]]; then
+        [[ -r /dev/tty ]] || fail "대화형 터미널이 필요합니다."
+        exec </dev/tty || fail "터미널 입력을 열지 못했습니다."
+    fi
     require_tools
     WORK_DIR=$(mktemp -d /tmp/pve-mshell-replace.XXXXXX) || fail "임시 디렉터리 생성 실패"
     select_vm
@@ -305,4 +310,4 @@ main() {
     info "복원용 설정 기록: $LOG_FILE"
 }
 
-if [[ ${BASH_SOURCE[0]} == "$0" ]]; then main "$@"; fi
+if [[ -z ${BASH_SOURCE[0]:-} || ${BASH_SOURCE[0]} == "$0" ]]; then main "$@"; fi
